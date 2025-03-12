@@ -83,6 +83,7 @@ const startRound = (roomId: string) => {
 	const { players } = room
 	let startingPlayer = players[0]
 	players.forEach((p) => {
+		p.score = 0
 		if (p.hand.find((c) => c === '2_of_clubs')) {
 			startingPlayer = p
 			p.hand = p.hand.filter((c) => c !== '2_of_clubs')
@@ -158,7 +159,9 @@ export const applyPlayedCard = (player: Player, card: Card, room?: Room) => {
 			room.isHeartsBroken = true
 			socketBroadcast<PlayCardClient>('game-event', 'hearts-broken', room.uniqueLink)
 		}
-		if (card === 'queen_of_spades')
+		if (card === 'queen_of_spades'
+			|| card === 'king_of_spades'
+			|| card === 'ace_of_spades')
 			socketBroadcast<PlayCardClient>('game-event', 'queen-played', room.uniqueLink)
 	}
 
@@ -176,6 +179,14 @@ export const applyFinishedTurn = (roomId: string) => {
 	const turnCards = players.map((p) => p.playedCard) as Card[]
 
 	if (playerWithHighestCard) {
+		let score = 1
+		turnCards.forEach((c) => {
+			if (c === 'queen_of_spades') score -= 13
+			else if (c === 'king_of_spades') score -= 10
+			else if (c === 'ace_of_spades') score -= 7
+			else if (c.includes('of_hearts')) score -= 1
+		})
+		playerWithHighestCard.score += score
 		playerWithHighestCard.graveyard = playerWithHighestCard.graveyard.concat(turnCards)
 	} else console.error("Couldn't find player with highest card!")
 
@@ -205,28 +216,15 @@ export const nextTurn = (roomId: string) => {
 	room.startingCard = undefined
 
 	if (players[0].hand.length === 0) {
-		let playerGotAllPoints: Player
+		let playerGotAllHearts: Player
 		players.forEach((p) => {
-			let points = 0
+			let hearts = 0
 			p.graveyard.forEach((c) => {
-				if (c === 'queen_of_spades') points += 13
-				else if (c.includes('of_hearts')) points += 1
+				if (c.includes('of_hearts')) hearts += 1
 			})
-			if (points === 26) playerGotAllPoints = p
-		})
-		players.forEach((p) => {
-			if (playerGotAllPoints) {
-				if (p !== playerGotAllPoints) p.points += 26
-
-				return
-			}
-
-			let points = 0
-			p.graveyard.forEach((c) => {
-				if (c === 'queen_of_spades') points += 13
-				else if (c.includes('of_hearts')) points += 1
-			})
-			p.points += points
+			if (hearts === 13) p.score += 30
+			p.points += p.score
+			p.score = 0
 		})
 
 		console.log('Round ended: ' + JSON.stringify(room.players, null, 2))

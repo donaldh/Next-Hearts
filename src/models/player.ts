@@ -5,6 +5,7 @@ export type Player = {
 	id?: string
 	publicID?: string
 	name: string
+	score: number
 	points: number
 	seat: number
 	isPlaying?: boolean
