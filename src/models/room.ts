@@ -4,6 +4,7 @@ import { Card } from './card'
 import { Player } from './player'
 
 export type Room = {
+	active: boolean
 	players: readonly Player[]
 	uniqueLink: string
 	deck: readonly Card[]
@@ -29,6 +30,7 @@ export const addRoom = (idOverride?: string) => {
 	})
 
 	const room = {
+		active: false,
 		players: [],
 		deck: [],
 		uniqueLink: idOverride || uniqueLink,

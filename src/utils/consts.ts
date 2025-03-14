@@ -1,6 +1,8 @@
 import { ModalProps } from "@heroui/react"
 
-export const maxCardsHandRowMobile = 7
+export const minPlayers = 3
+export const maxPlayers = 5
+export const maxCardsHandRowMobile = 9
 
 export const playedCardSizeRatio = 0.85
 export const handCardVisibleRatio = 0.33

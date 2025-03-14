@@ -22,8 +22,6 @@ export default async function handler(
 	const room = getRoom(req.query.room)
 	if (!room) return res.status(404).send({})
 
-	if (!room.gameOver) return res.status(400).send({})
-
 	newGame(query.room)
 
 	let output: Response = {}

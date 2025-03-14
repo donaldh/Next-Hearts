@@ -2,7 +2,7 @@ import { memo, useCallback, useMemo } from 'react'
 
 import { CardArea } from 'components/CardArea'
 
-import { Player, PlayerPosition, getNextPlayer, getPreviousPlayer } from 'models/player'
+import { Player, getNextPlayer, getPreviousPlayer } from 'models/player'
 import { Animation, localPlayerArea } from 'pages'
 
 export const CardAreas = memo(function CardAreas({
@@ -17,18 +17,18 @@ export const CardAreas = memo(function CardAreas({
 	playerToStartNextTurn?: string
 }) {
 	const getPlayer = useCallback(
-		(position: PlayerPosition) => {
+		(position: number) => {
 			let p: Player | undefined
 
-			if (position === 'bottom') p = localPlayer
-			if (position === 'left') {
-				p = getPreviousPlayer(players, localPlayer)
-			}
-			if (position === 'right') {
+			if (position === 0) p = localPlayer
+			else if (position === 1) {
 				p = getNextPlayer(players, localPlayer)
 			}
-			if (position === 'top') {
+			else if (position === 2) {
 				p = getNextPlayer(players, getNextPlayer(players, localPlayer))
+			}
+			else if (position === 3) {
+				p = getNextPlayer(players, getNextPlayer(players, getNextPlayer(players, localPlayer)))
 			}
 
 			return {
@@ -40,19 +40,19 @@ export const CardAreas = memo(function CardAreas({
 	)
 
 	const getPosition = useCallback(
-		(playerPublicID?: string): PlayerPosition => {
+		(playerPublicID?: string): number => {
 			const player = players.find((p) => p.publicID === playerPublicID)
 			const previousPlayer = getPreviousPlayer(players, localPlayer)
 			const nextPlayer = getNextPlayer(players, localPlayer)
-			if (player === localPlayer) return 'bottom'
-			if (player === previousPlayer) {
-				return 'left'
-			}
+			if (player === localPlayer) return 0
 			if (player === nextPlayer) {
-				return 'right'
+				return 1
+			}
+			if (player === previousPlayer) {
+				return 2
 			}
 
-			return 'top'
+			return 2
 		},
 		[players, localPlayer]
 	)
@@ -72,14 +72,11 @@ export const CardAreas = memo(function CardAreas({
 
 	return (
 		<>
-			<CardArea animationData={animationData} playerData={getPlayer('top')} />
-			<CardArea animationData={animationData} playerData={getPlayer('left')} />
-			<CardArea animationData={animationData} playerData={getPlayer('right')} />
-			<CardArea
-				animationData={animationData}
-				playerData={getPlayer('bottom')}
-				id={localPlayerArea}
-			/>
+		{players.map((_, index) => (
+			index === 0
+			? <CardArea key={index} animationData={animationData} playerData={getPlayer(index)} id={localPlayerArea}/>
+			: <CardArea key={index} animationData={animationData} playerData={getPlayer(index)}/>
+		))}
 		</>
 	)
 })

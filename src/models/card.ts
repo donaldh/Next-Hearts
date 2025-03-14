@@ -1,8 +1,4 @@
 export const cardsList = [
-	'10_of_clubs',
-	'10_of_diamonds',
-	'10_of_hearts',
-	'10_of_spades',
 	'2_of_clubs',
 	'2_of_diamonds',
 	'2_of_hearts',
@@ -35,6 +31,10 @@ export const cardsList = [
 	'9_of_diamonds',
 	'9_of_hearts',
 	'9_of_spades',
+	'10_of_clubs',
+	'10_of_diamonds',
+	'10_of_hearts',
+	'10_of_spades',
 	'ace_of_clubs',
 	'ace_of_diamonds',
 	'ace_of_hearts',
@@ -64,10 +64,12 @@ function shuffleArray(array: string[]) {
 		array[j] = temp
 	}
 }
-export const getShuffledCards = () => {
+export const getShuffledCards = (players: number) => {
 	const cards = JSON.parse(JSON.stringify(cardsList))
-	shuffleArray(cards)
-	return cards
+	const inPlay = players === 3 ? cards.slice(1) : players === 5 ? cards.slice(2) : cards
+	shuffleArray(inPlay)
+	console.log('Playing with ' + inPlay.length + ' cards for ' + players + ' players...')
+	return inPlay
 }
 
 export const sortCards = (cards: Card[]) =>

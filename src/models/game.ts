@@ -30,6 +30,7 @@ export const newGame = (roomId: string) => {
 	const room = getRoom(roomId)
 	if (!room) return
 
+	room.active = true
 	room.gameOver = false
 	const { players } = room
 	for (let i = 0; i < players.length; i++) {
@@ -50,25 +51,28 @@ export const prepareRound = (roomId: string) => {
 
 	console.log('Starting new game in room ' + room.uniqueLink)
 
-	room.isHeartsBroken = false
-	room.deck = getShuffledCards()
-
 	const DEBUG_END_GAME = false && !isProd
 
 	const { players } = room
+
+	room.isHeartsBroken = false
+	room.deck = getShuffledCards(players.length)
+
+	let n = room.deck.length / players.length
 	for (let i = 0; i < players.length; i++) {
 		const p = players[i]
 		p.playedCard = undefined
 		p.isPlaying = false
 		p.graveyard = []
-		p.hand = sortCards(room.deck.slice(i * 13, 13 + i * 13))
+		p.hand = sortCards(room.deck.slice(i * n, n + i * n))
+		console.log('Player ' + i + ' has ' + p.hand.length + ' cards')
 
 		if (DEBUG_END_GAME) p.hand = ['queen_of_spades', '2_of_spades']
 	}
 
 	if (DEBUG_END_GAME) players[0].hand = ['queen_of_spades', '2_of_clubs']
 
-	room.startingCard = '2_of_clubs'
+	room.startingCard = '2_of_spades'
 
 	saveRoom(room.uniqueLink, room)
 
@@ -84,13 +88,13 @@ const startRound = (roomId: string) => {
 	let startingPlayer = players[0]
 	players.forEach((p) => {
 		p.score = 0
-		if (p.hand.find((c) => c === '2_of_clubs')) {
+		if (p.hand.find((c) => c === '2_of_spades')) {
 			startingPlayer = p
-			p.hand = p.hand.filter((c) => c !== '2_of_clubs')
+			p.hand = p.hand.filter((c) => c !== '2_of_spades')
 		}
 	})
 
-	startingPlayer.playedCard = '2_of_clubs'
+	startingPlayer.playedCard = '2_of_spades'
 	const nextPlayer = getNextPlayer(players, startingPlayer)
 	if (nextPlayer) nextPlayer.isPlaying = true
 
@@ -216,13 +220,12 @@ export const nextTurn = (roomId: string) => {
 	room.startingCard = undefined
 
 	if (players[0].hand.length === 0) {
-		let playerGotAllHearts: Player
 		players.forEach((p) => {
 			let hearts = 0
 			p.graveyard.forEach((c) => {
 				if (c.includes('of_hearts')) hearts += 1
 			})
-			if (hearts === 13) p.score += 30
+			if (hearts === 13) p.score += 43
 			p.points += p.score
 			p.score = 0
 		})

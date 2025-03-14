@@ -16,17 +16,17 @@ export type Player = {
 	isLocal?: boolean
 }
 
-export type PlayerPosition = 'left' | 'right' | 'top' | 'bottom'
-
 export const getNextPlayer = (players: readonly Player[], player?: Player) => {
-	const lastSeatPlayer = players.find((p) => p.seat === 3)
+	let lastPlayer = players.length - 1
+	const lastSeatPlayer = players.find((p) => p.seat === lastPlayer)
 	const seat = player?.seat || 0
 	return seat - 1 < 0 ? lastSeatPlayer : players.find((p) => p.seat === seat - 1)
 }
 export const getPreviousPlayer = (players: Player[], player?: Player) => {
+	let lastPlayer = players.length - 1
 	const firstSeatPlayer = players.find((p) => p.seat === 0)
 	const seat = player?.seat || 0
-	return seat + 1 > 3 ? firstSeatPlayer : players.find((p) => p.seat === seat + 1)
+	return seat + 1 > lastPlayer ? firstSeatPlayer : players.find((p) => p.seat === seat + 1)
 }
 
 export const getPlayerWithHighestCard = (players: readonly Player[], startingCard?: Card) => {

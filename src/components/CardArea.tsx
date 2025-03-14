@@ -1,6 +1,6 @@
 import { useDroppable } from '@dnd-kit/core'
 import { useBreakpoint } from 'core/client/components/MediaQuery'
-import { Player, PlayerPosition } from 'models/player'
+import { Player } from 'models/player'
 import { Animation } from 'pages'
 import { memo, useCallback, useEffect, useMemo, useState } from 'react'
 import { Client } from 'react-hydration-provider'
@@ -12,11 +12,11 @@ type Props = {
 	id?: string
 	playerData: {
 		player?: Player
-		position: PlayerPosition
+		position: number
 	}
 	animationData: {
 		animation?: Animation
-		animateToPosition?: PlayerPosition
+		animateToPosition?: number
 	}
 }
 
@@ -31,7 +31,7 @@ let queuedAnimation: NodeJS.Timeout | undefined
 
 const BaseCardArea = ({ animationData, playerData, id }: Props) => {
 	const { position, player } = playerData
-	const { animation, animateToPosition } = animationData
+	const { animation, animateToPosition} = animationData
 
 	const { setNodeRef } = useDroppable({
 		id: id || position,
@@ -57,7 +57,7 @@ const BaseCardArea = ({ animationData, playerData, id }: Props) => {
 	const getOffset = useCallback(
 		(
 			desktop: boolean,
-			pos: PlayerPosition,
+			pos: number,
 			extraY?: number,
 			extraX?: number,
 			verticalOnly?: boolean
@@ -66,13 +66,13 @@ const BaseCardArea = ({ animationData, playerData, id }: Props) => {
 			const cardSize = playedCardSizeRatio * getCardSize(desktop)
 			return {
 				top: `calc(50% - ${cardSize}dvh + ${
-					pos === 'bottom' ? offset : pos === 'top' ? -offset : 0
+					pos === 0 ? offset : pos === 2 ? -offset : 0
 				}dvh + ${extraY || 0}dvh + ${
 					desktop ? cardVerticalOffset : cardVerticalOffsetMobile
 				}dvh)`,
 				...(!verticalOnly && {
 					left: `calc(50% - ${cardSize / 2}dvh + ${
-						pos === 'right' ? offset : pos === 'left' ? -offset : 0
+						pos === 3 ? offset : pos === 1 ? -offset : 0
 					}dvh + ${extraX || 0}dvh)`,
 				}),
 			}
@@ -102,18 +102,18 @@ const BaseCardArea = ({ animationData, playerData, id }: Props) => {
 				...(!player?.isLocal &&
 					!player?.playedCard && {
 						transform: `translate(${
-							position === 'left' ? -10 : position === 'right' ? 10 : 0
+							position === 1 ? -10 : position === 3 ? 10 : 0
 						}dvh, calc(${
-							position === 'top' ? -10 : position === 'bottom' ? 10 : 0
+							position === 2 ? -10 : position === 0 ? 10 : 0
 						}dvh) rotateY(45deg) rotateZ(90deg)`,
 					}),
 				...(animation === 'get-cards' &&
-					animateToPosition && {
+					animateToPosition !== undefined && {
 						...getOffset(
 							desktop,
 							animateToPosition,
-							-1 * (position === 'top' ? 2.5 : position === 'bottom' ? -2.5 : 0) + 4,
-							-1 * (position === 'left' ? 5.0 : position === 'right' ? -5.0 : 0)
+							-1 * (position === 2 ? 2.5 : position === 0 ? -2.5 : 0) + 4,
+							-1 * (position === 1 ? 5.0 : position === 3 ? -5.0 : 0)
 						),
 					}),
 			}

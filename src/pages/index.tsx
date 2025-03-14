@@ -178,7 +178,7 @@ const Game: NextPage = () => {
 		<PageWrapper>
 			{scoreboard()}
 			{joinRoom()}
-			<WaitingForPlayers roomID={query?.room} players={players} />
+			<WaitingForPlayers roomID={query?.room} players={players} active={data?.playing === false } />
 
 			<div className={`select-none${!interactive ? ' pointer-events-none' : ''}`}>
 				<DndContext

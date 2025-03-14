@@ -5,15 +5,20 @@ import { Player } from 'models/player'
 import { useState } from 'react'
 import { modalProps } from 'utils/consts'
 import { ModalWrapper } from './ModalContent'
+import { request } from 'core/client/api'
+import { Query } from 'pages/api/new-game'
 
-export const WaitingForPlayers = ({ players, roomID }: { players: Player[]; roomID?: string }) => {
+export const WaitingForPlayers = ({ players, roomID, active }: {
+	players: Player[]
+	roomID?: string
+	active?: boolean
+}) => {
 	const [animationParent] = useAutoAnimate()
-	const [copied, setCopied] = useState(false)
 	return (
 		<Modal
 			{...modalProps}
 			size='sm'
-			isOpen={players.length > 0 && players.length < 4 && !!roomID}
+			isOpen={players.length > 0 && active && !!roomID}
 		>
 			<ModalContent>
 				<ModalWrapper>
@@ -44,20 +49,17 @@ export const WaitingForPlayers = ({ players, roomID }: { players: Player[]; room
 					<p className='text-gray-500 text-sm font-semibold'>{roomID}</p>
 
 					<Button
-						onClick={() => {
-							navigator.clipboard.writeText(
-								typeof window !== 'undefined' ? window.location.href : ''
-							)
-							setCopied(true)
+						onPress={async () => {
+							if (roomID)
+								await request<Response, Query, undefined>({
+									path: '/new-game',
+									query: { room: roomID },
+								})
 						}}
-						className={copied ? 'text-gray-500' : undefined}
-						color={copied ? 'default' : 'primary'}
+						color='primary'
 					>
 						<div className='flex gap-2 items-center'>
-							{copied ? 'Copied ' : 'Share link'}
-							{copied && (
-								<ClipboardDocumentCheckIcon className='stroke-[2] w-4 text-gray-500' />
-							)}
+							Start Game
 						</div>
 					</Button>
 				</ModalWrapper>

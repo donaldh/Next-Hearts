@@ -25,6 +25,7 @@ export type Response =
 			isHeartsBroken?: boolean
 			playerToStartNextTurn?: string
 			gameOver?: boolean
+			playing?: boolean
 	  }
 	| undefined
 
@@ -66,6 +67,7 @@ export default function handler(
 		isHeartsBroken: room?.isHeartsBroken,
 		playerToStartNextTurn: room?.playerToStartNextTurn?.publicID,
 		gameOver: room?.gameOver,
+		playing: room?.active,
 	}
 
 	res.status(200).json(output)

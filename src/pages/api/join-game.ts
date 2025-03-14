@@ -3,6 +3,7 @@ import { NextApiRequestTyped } from 'core/server/types'
 import { validate } from 'core/server/zod'
 import { PlayCardClient, newGame } from 'models/game'
 import { Room, addRoom, getPlayer, getRoom, saveRoom } from 'models/room'
+import { maxPlayers } from 'utils/consts'
 import { NextApiResponse } from 'next'
 import { v1 } from 'uuid'
 import { z } from 'zod'
@@ -26,7 +27,7 @@ const addPlayer = (
 	name: string
 ) => {
 	if (!getPlayer(room, playerID)) {
-		if (room.players.length === 4) return false
+		if (room.players.length === maxPlayers) return false
 
 		room = saveRoom(room.uniqueLink, {
 			...room,
@@ -46,10 +47,6 @@ const addPlayer = (
 
 		console.log('Adding player to room ' + room.uniqueLink + ': ' + name)
 		socketBroadcast<PlayCardClient>('update-game', undefined, room.uniqueLink)
-
-		if (room.players.length === 4) {
-			newGame(room.uniqueLink)
-		}
 
 		return true
 	}
