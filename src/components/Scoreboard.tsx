@@ -32,7 +32,7 @@ export const useScoreboard = ({
 
 	useEffect(() => {
 		if (gameOver) {
-			setTimeout(() => setNewGameAvailable(true), 10000)
+			setTimeout(() => setNewGameAvailable(true), 5000)
 		}
 	}, [gameOver])
 
@@ -77,8 +77,8 @@ export const useScoreboard = ({
 
 						<ul className='w-full flex flex-col gap-4' ref={animationParent}>
 							{sortedPlayers.map((p) => {
-								const winner = p.points === minPoints
-								const loser = p.points === maxPoints
+								const winner = p.points === maxPoints
+								const loser = p.points === minPoints
 
 								let color = winner
 									? 'text-primary'
