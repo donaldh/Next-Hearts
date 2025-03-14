@@ -115,7 +115,7 @@ export const useScoreboard = ({
 							<Button
 								color='primary'
 								isLoading={!newGameAvailable}
-								onClick={async () => {
+								onPress={async () => {
 									if (roomID)
 										await request<Response, Query, undefined>({
 											path: '/new-game',
