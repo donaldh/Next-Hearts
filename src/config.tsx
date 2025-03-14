@@ -7,7 +7,7 @@ export const useLingui = true
 export const defaultTheme: Theme = 'system'
 export const forceTheme: Theme | undefined = 'light'
 
-export const title = 'Next-Hearts'
+export const title = 'Black Maria'
 export const description = 'Open-source multiplayer Hearts card game made with Next.js'
 
 // Preconnect to load assets like fonts faster
