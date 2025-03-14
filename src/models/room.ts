@@ -10,6 +10,7 @@ export type Room = {
 	deck: readonly Card[]
 	startingCard?: Card
 	isHeartsBroken?: boolean
+	startingPlayer?: Player
 	playerToStartNextTurn?: Player
 	createdAt: Date
 	gameOver?: boolean

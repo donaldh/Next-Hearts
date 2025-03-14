@@ -65,14 +65,13 @@ export const prepareRound = (roomId: string) => {
 		p.isPlaying = false
 		p.graveyard = []
 		p.hand = sortCards(room.deck.slice(i * n, n + i * n))
-		console.log('Player ' + i + ' has ' + p.hand.length + ' cards')
 
-		if (DEBUG_END_GAME) p.hand = ['queen_of_spades', '2_of_spades']
+		if (DEBUG_END_GAME) p.hand = p.hand.slice(0,5)
+
+		console.log('Player ' + i + ' has ' + p.hand.length + ' cards')
 	}
 
-	if (DEBUG_END_GAME) players[0].hand = ['queen_of_spades', '2_of_clubs']
-
-	room.startingCard = '2_of_spades'
+	if (DEBUG_END_GAME) players[0].hand[4] = 'queen_of_spades'
 
 	saveRoom(room.uniqueLink, room)
 
@@ -80,23 +79,18 @@ export const prepareRound = (roomId: string) => {
 	socketBroadcast<PlayCardClient>('update-game', undefined, room.uniqueLink)
 	socketBroadcast<PlayCardClient>('game-event', 'round-start', room.uniqueLink)
 }
+
 const startRound = (roomId: string) => {
 	const room = getRoom(roomId)
 	if (!room) return
 
 	const { players } = room
-	let startingPlayer = players[0]
-	players.forEach((p) => {
-		p.score = 0
-		if (p.hand.find((c) => c === '2_of_spades')) {
-			startingPlayer = p
-			p.hand = p.hand.filter((c) => c !== '2_of_spades')
-		}
-	})
 
-	startingPlayer.playedCard = '2_of_spades'
-	const nextPlayer = getNextPlayer(players, startingPlayer)
-	if (nextPlayer) nextPlayer.isPlaying = true
+	let startingPlayer = room.startingPlayer
+					   ? getNextPlayer(players, room.startingPlayer)
+					   : players[0]
+	if (startingPlayer) startingPlayer.isPlaying = true
+	room.startingPlayer = startingPlayer
 
 	saveRoom(room.uniqueLink, room)
 
