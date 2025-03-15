@@ -20,20 +20,15 @@ export const CardAreas = memo(function CardAreas({
 		(position: number) => {
 			let p: Player | undefined
 
-			if (position === 0) p = localPlayer
-			else if (position === 1) {
-				p = getNextPlayer(players, localPlayer)
-			}
-			else if (position === 2) {
-				p = getNextPlayer(players, getNextPlayer(players, localPlayer))
-			}
-			else if (position === 3) {
-				p = getNextPlayer(players, getNextPlayer(players, getNextPlayer(players, localPlayer)))
+			p = localPlayer
+			for (let i = 0; i < position; i++) {
+				p = getNextPlayer(players, p)
 			}
 
 			return {
 				position,
 				player: p,
+				numPlayers: players.length
 			}
 		},
 		[players, localPlayer]
