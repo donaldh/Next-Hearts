@@ -37,17 +37,15 @@ export const CardAreas = memo(function CardAreas({
 	const getPosition = useCallback(
 		(playerPublicID?: string): number => {
 			const player = players.find((p) => p.publicID === playerPublicID)
-			const previousPlayer = getPreviousPlayer(players, localPlayer)
-			const nextPlayer = getNextPlayer(players, localPlayer)
+			let nextPlayer = getNextPlayer(players, localPlayer)
 			if (player === localPlayer) return 0
-			if (player === nextPlayer) {
-				return 1
+			for (let i = 1; i <= players.length; i++) {
+				if (player === nextPlayer) {
+					return i
+				}
+				nextPlayer = getNextPlayer(players, nextPlayer)
 			}
-			if (player === previousPlayer) {
-				return 2
-			}
-
-			return 2
+			return 0
 		},
 		[players, localPlayer]
 	)

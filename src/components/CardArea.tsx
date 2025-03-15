@@ -12,6 +12,7 @@ type Props = {
 	id?: string
 	playerData: {
 		player?: Player
+		numPlayers: number
 		position: number
 	}
 	animationData: {
@@ -21,7 +22,7 @@ type Props = {
 }
 
 const seatOffset = 25
-const seatOffsetMobile = 15
+const seatOffsetMobile = 18
 const cardVerticalOffset = -3
 const cardVerticalOffsetMobile = -6
 
@@ -30,7 +31,7 @@ const getRandomRotation = () => Math.random() * 10 * (Math.random() < 0.5 ? -1 :
 let queuedAnimation: NodeJS.Timeout | undefined
 
 const BaseCardArea = ({ animationData, playerData, id }: Props) => {
-	const { position, player } = playerData
+	const { position, player, numPlayers } = playerData
 	const { animation, animateToPosition} = animationData
 
 	const { setNodeRef } = useDroppable({
@@ -62,22 +63,32 @@ const BaseCardArea = ({ animationData, playerData, id }: Props) => {
 			extraX?: number,
 			verticalOnly?: boolean
 		) => {
-			const offset = desktop ? seatOffset : seatOffsetMobile
+			const off = desktop ? seatOffset : seatOffsetMobile
+			const layouts = [
+				[ ],
+				[ [0, off] ],
+				[ [0, off], [0, -off] ],
+				[ [0, off], [-off, -off*0.6], [off, -off*0.6] ],
+				[ [0, off], [-off, 0], [0, -off], [off, 0] ],
+				[ [0, off], [-off, off*0.4], [-off*0.6, -off], [off*0.6, -off], [off, off*0.4] ]
+			]
+
 			const cardSize = playedCardSizeRatio * getCardSize(desktop)
+			const [x, y] = layouts[numPlayers][pos]
 			return {
 				top: `calc(50% - ${cardSize}dvh + ${
-					pos === 0 ? offset : pos === 2 ? -offset : 0
+					y
 				}dvh + ${extraY || 0}dvh + ${
 					desktop ? cardVerticalOffset : cardVerticalOffsetMobile
 				}dvh)`,
 				...(!verticalOnly && {
 					left: `calc(50% - ${cardSize / 2}dvh + ${
-						pos === 3 ? offset : pos === 1 ? -offset : 0
+						x
 					}dvh + ${extraX || 0}dvh)`,
 				}),
 			}
 		},
-		[]
+		[numPlayers]
 	)
 
 	const getStyles = useCallback(
