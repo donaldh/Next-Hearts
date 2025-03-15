@@ -57,6 +57,7 @@ export const WaitingForPlayers = ({ players, roomID, active }: {
 								})
 						}}
 						color='primary'
+						isDisabled={players.length < 3}
 					>
 						<div className='flex gap-2 items-center'>
 							Start Game
