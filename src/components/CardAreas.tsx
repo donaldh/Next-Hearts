@@ -2,7 +2,7 @@ import { memo, useCallback, useMemo } from 'react'
 
 import { CardArea } from 'components/CardArea'
 
-import { Player, getNextPlayer, getPreviousPlayer } from 'models/player'
+import { Player, getNextPlayer } from 'models/player'
 import { Animation, localPlayerArea } from 'pages'
 
 export const CardAreas = memo(function CardAreas({
