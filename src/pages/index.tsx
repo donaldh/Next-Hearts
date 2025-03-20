@@ -127,6 +127,13 @@ const Game: NextPage = () => {
 		async (cards: Card[]) => {
 			if (!data?.swapPhase || !playerID) return
 			
+			// Check if the player has already submitted cards
+			const localPlayerHasSubmitted = localPlayer?.cardsToSwap && localPlayer.cardsToSwap.length === 3
+			if (localPlayerHasSubmitted) {
+				// Player has already submitted cards, don't submit again
+				return
+			}
+			
 			const { error } = await request<SwapCardsResponse, Query, SwapCardsBody>({
 				path: 'swap-cards',
 				query: query,
@@ -148,7 +155,7 @@ const Game: NextPage = () => {
 				)
 			}
 		},
-		[data, playerID, query, players, refetch]
+		[data, playerID, query, players, refetch, localPlayer]
 	)
 
 	const handleDragEnd = useCallback(
@@ -158,11 +165,11 @@ const Game: NextPage = () => {
 			setDraggingCard(undefined)
 
 			if (localPlayer) {
-				const willPlayCard = over?.id.toString() === localPlayerArea
 				const card = active.id.toString() as Card
+				const willPlayCard = over?.id.toString() === localPlayerArea
 
 				if (data?.swapPhase) {
-					// In swap phase, clicking a card selects/deselects it
+					// In swap phase, clicking a card selects/deselects it regardless of drop target
 					const newSelectedCards = [...selectedCards]
 					const cardIndex = newSelectedCards.indexOf(card)
 					
@@ -242,7 +249,10 @@ const Game: NextPage = () => {
 					{data.swapDirection === 'left' && 'Pass 3 cards to the left'}
 					{data.swapDirection === 'right' && 'Pass 3 cards to the right'}
 					{data.swapDirection === 'across' && 'Pass 3 cards across'}
-					{` (${selectedCards.length}/3 selected)`}
+					{localPlayer?.cardsToSwap && localPlayer.cardsToSwap.length === 3 
+						? ' (Cards submitted - waiting for other players)'
+						: ` (${selectedCards.length}/3 selected)`
+					}
 				</div>
 			)}
 
@@ -253,7 +263,24 @@ const Game: NextPage = () => {
 					onDragStart={({ active }: DragStartEvent) => {
 						if (!interactive) return
 
-						setDraggingCard(active.id.toString() as Card)
+						const card = active.id.toString() as Card
+						setDraggingCard(card)
+						
+						// For swap phase, immediately handle card selection on drag start
+						if (data?.swapPhase && localPlayer) {
+							const newSelectedCards = [...selectedCards]
+							const cardIndex = newSelectedCards.indexOf(card)
+							
+							if (cardIndex >= 0) {
+								// Deselect the card
+								newSelectedCards.splice(cardIndex, 1)
+							} else if (newSelectedCards.length < 3) {
+								// Select the card if we haven't selected 3 yet
+								newSelectedCards.push(card)
+							}
+							
+							setSelectedCards(newSelectedCards)
+						}
 					}}
 					onDragEnd={handleDragEnd}
 					onDragOver={({ over }: DragOverEvent) => {
