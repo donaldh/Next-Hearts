@@ -117,6 +117,7 @@ const Game: NextPage = () => {
 	const [dragHoverArea, setDragHoverArea] = useState<string>()
 	const [draggingCard, setDraggingCard] = useState<Card>()
 	const [selectedCards, setSelectedCards] = useState<Card[]>([])
+	const [confirmingSwap, setConfirmingSwap] = useState(false)
 
 	const interactive = useMemo(
 		() => (localPlayer?.isPlaying && !animation) || (data?.swapPhase && !animation),
@@ -133,6 +134,8 @@ const Game: NextPage = () => {
 				// Player has already submitted cards, don't submit again
 				return
 			}
+
+			setConfirmingSwap(false) // Reset confirmation state
 
 			const { error } = await request<SwapCardsResponse, Query, SwapCardsBody>({
 				path: 'swap-cards',
@@ -258,14 +261,27 @@ const Game: NextPage = () => {
 			<WaitingForPlayers roomID={query?.room} players={players} active={data?.playing === false } />
 
 			{data?.swapPhase && (
-				<div className="fixed top-0 left-0 w-full bg-primary text-white p-2 text-center z-50">
-					{data.swapDirection === 'left' && 'Pass 3 cards to the left'}
-					{data.swapDirection === 'right' && 'Pass 3 cards to the right'}
-					{data.swapDirection === 'across' && 'Pass 3 cards across'}
-					{localPlayer?.cardsToSwap && localPlayer.cardsToSwap.length === 3
-						? ' (Cards submitted - waiting for other players)'
-						: ` (${selectedCards.length}/3 selected)`
-					}
+				<div className="fixed top-0 left-0 w-full bg-primary text-white p-2 text-center z-50 flex justify-between items-center">
+					<div className="w-1/3"></div>
+					<div className="w-1/3">
+						{data.swapDirection === 'left' && 'Pass 3 cards to the left'}
+						{data.swapDirection === 'right' && 'Pass 3 cards to the right'}
+						{data.swapDirection === 'across' && 'Pass 3 cards across'}
+						{localPlayer?.cardsToSwap && localPlayer.cardsToSwap.length === 3
+							? ' (Cards submitted - waiting for other players)'
+							: ` (${selectedCards.length}/3 selected)`
+						}
+					</div>
+					<div className="w-1/3 flex justify-end pr-2">
+						{confirmingSwap && !localPlayer?.cardsToSwap && (
+							<button 
+								className="bg-white text-primary px-4 py-1 rounded-md"
+								onClick={() => swapCards(selectedCards)}
+							>
+								Confirm
+							</button>
+						)}
+					</div>
 				</div>
 			)}
 
