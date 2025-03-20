@@ -104,11 +104,12 @@ const BasePlayingCard = ({
 
 	return (
 		<Client>
-			<div className={isInHand ? styles.Container : undefined} style={containerStyle}>
+			<div className={isInHand ? styles.Container : undefined} style={containerStyle} data-card-id={id}>
 				<button
 					disabled={isDisabled}
 					ref={isOverlay || isDisabled ? undefined : setNodeRef}
 					style={buttonStyle}
+					data-card-id={id}
 					{...listeners}
 					{...attributes}
 				>
