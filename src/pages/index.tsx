@@ -165,30 +165,31 @@ const Game: NextPage = () => {
 	const handleCardSelection = useCallback(
 		async (card: Card) => {
 			if (!data?.swapPhase || !localPlayer) return
-
+			
 			// Check if the player has already submitted cards
 			const localPlayerHasSubmitted = localPlayer.cardsToSwap && localPlayer.cardsToSwap.length === 3
 			if (localPlayerHasSubmitted) return
-
+			
+			// Verify the card is in the player's hand
+			if (!localPlayer.hand.includes(card)) return
+			
 			const newSelectedCards = [...selectedCards]
 			const cardIndex = newSelectedCards.indexOf(card)
-
+			
 			if (cardIndex >= 0) {
 				// Deselect the card
 				newSelectedCards.splice(cardIndex, 1)
+				setConfirmingSwap(false) // Reset confirmation when changing selection
 			} else if (newSelectedCards.length < 3) {
 				// Select the card if we haven't selected 3 yet
 				newSelectedCards.push(card)
+				// Enable confirmation button when exactly 3 cards are selected
+				setConfirmingSwap(newSelectedCards.length === 3)
 			}
-
+			
 			setSelectedCards(newSelectedCards)
-
-			// If we have exactly 3 cards selected, submit them
-			if (newSelectedCards.length === 3) {
-				await swapCards(newSelectedCards)
-			}
 		},
-		[data?.swapPhase, localPlayer, selectedCards, swapCards]
+		[data?.swapPhase, localPlayer, selectedCards]
 	)
 
 	const handleDragEnd = useCallback(
