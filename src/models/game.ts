@@ -3,7 +3,7 @@ import { isProd } from 'core/env'
 import { socketBroadcast } from 'core/server/socket-io'
 import { Card, getShuffledCards, sortCards } from 'models/card'
 import { Player, getNextPlayer, getPlayerWithHighestCard } from 'models/player'
-import { Room, getRoom, saveRoom } from 'models/room'
+import { Room, getRoom, saveRoom, getPlayer } from 'models/room'
 
 export type Event =
 	| 'card-played'
@@ -61,10 +61,12 @@ export const prepareRound = (roomId: string) => {
 
 	room.isHeartsBroken = false
 	room.deck = getShuffledCards(players.length)
-	
+
 	// Increment round count
 	room.roundCount = (room.roundCount || 0) + 1
-	
+
+	console.log('Round ' + room.roundCount)
+
 	// Determine swap direction based on round count
 	if (players.length === 4) {
 		const roundMod = (room.roundCount % 4)
@@ -102,11 +104,15 @@ export const prepareRound = (roomId: string) => {
 	// If we need to swap cards, enter swap phase
 	if (room.swapDirection) {
 		room.swapPhase = true
+		saveRoom(room.uniqueLink, room)
 		socketBroadcast<PlayCardClient>('game-event', 'swap-start', room.uniqueLink)
 	} else {
 		setTimeout(() => startRound(room.uniqueLink), 750)
 	}
-	
+
+	console.log('Swap direction is ' + room.swapDirection)
+	console.log('Swap phase is ' + room.swapPhase)
+
 	socketBroadcast<PlayCardClient>('update-game', undefined, room.uniqueLink)
 	socketBroadcast<PlayCardClient>('game-event', 'round-start', room.uniqueLink)
 }
@@ -116,7 +122,7 @@ const startRound = (roomId: string) => {
 	if (!room) return
 
 	const { players } = room
-	
+
 	// Clear swap phase
 	room.swapPhase = false
 
@@ -135,9 +141,9 @@ const startRound = (roomId: string) => {
 export const getSwapTarget = (players: readonly Player[], sourcePlayer: Player, direction: 'left' | 'right' | 'across') => {
 	const playerCount = players.length
 	const sourceIndex = players.findIndex(p => p.id === sourcePlayer.id)
-	
+
 	if (sourceIndex === -1) return null
-	
+
 	let targetIndex = 0
 	if (direction === 'left') {
 		targetIndex = (sourceIndex + 1) % playerCount
@@ -146,7 +152,7 @@ export const getSwapTarget = (players: readonly Player[], sourcePlayer: Player, 
 	} else if (direction === 'across') {
 		targetIndex = (sourceIndex + Math.floor(playerCount / 2)) % playerCount
 	}
-	
+
 	return players[targetIndex]
 }
 
@@ -154,26 +160,26 @@ export const getSwapTarget = (players: readonly Player[], sourcePlayer: Player, 
 export const processCardSwap = (roomId: string, playerID: string, cards: Card[]) => {
 	const room = getRoom(roomId)
 	if (!room || !room.swapPhase || !room.swapDirection) return false
-	
+
 	const player = getPlayer(room, playerID)
 	if (!player) return false
-	
+
 	// Validate the cards are in the player's hand
 	const validCards = cards.every(card => player.hand.includes(card))
 	if (!validCards) return false
-	
+
 	// Store the cards to swap
 	player.cardsToSwap = cards
-	
+
 	saveRoom(room.uniqueLink, room)
-	
+
 	// Check if all players have selected cards to swap
 	const allPlayersReady = room.players.every(p => p.cardsToSwap && p.cardsToSwap.length === 3)
-	
+
 	if (allPlayersReady) {
 		executeCardSwap(roomId)
 	}
-	
+
 	return true
 }
 
@@ -181,12 +187,12 @@ export const processCardSwap = (roomId: string, playerID: string, cards: Card[])
 export const executeCardSwap = (roomId: string) => {
 	const room = getRoom(roomId)
 	if (!room || !room.swapDirection) return
-	
+
 	const { players } = room
-	
+
 	// Create a map to store the new hands
 	const newHands = new Map<string, Card[]>()
-	
+
 	// Initialize new hands with current hands minus cards to swap
 	players.forEach(player => {
 		if (player.id) {
@@ -194,7 +200,7 @@ export const executeCardSwap = (roomId: string) => {
 			newHands.set(player.id, [...remainingCards])
 		}
 	})
-	
+
 	// Add swapped cards to new hands
 	players.forEach(player => {
 		if (player.id && player.cardsToSwap) {
@@ -205,7 +211,7 @@ export const executeCardSwap = (roomId: string) => {
 			}
 		}
 	})
-	
+
 	// Update player hands
 	players.forEach(player => {
 		if (player.id) {
@@ -216,15 +222,15 @@ export const executeCardSwap = (roomId: string) => {
 			}
 		}
 	})
-	
+
 	// End swap phase
 	room.swapPhase = false
-	
+
 	saveRoom(room.uniqueLink, room)
-	
+
 	socketBroadcast<PlayCardClient>('game-event', 'swap-complete', room.uniqueLink)
 	socketBroadcast<PlayCardClient>('update-game', undefined, room.uniqueLink)
-	
+
 	// Start the round after a short delay
 	setTimeout(() => startRound(room.uniqueLink), 1500)
 }

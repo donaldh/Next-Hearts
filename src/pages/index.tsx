@@ -123,53 +123,23 @@ const Game: NextPage = () => {
 		[localPlayer, animation, data?.swapPhase]
 	)
 
-	// Handle card selection during swap phase
-	const handleCardSelection = useCallback(
-		async (card: Card) => {
-			if (!data?.swapPhase || !localPlayer) return
-			
-			// Check if the player has already submitted cards
-			const localPlayerHasSubmitted = localPlayer.cardsToSwap && localPlayer.cardsToSwap.length === 3
-			if (localPlayerHasSubmitted) return
-			
-			const newSelectedCards = [...selectedCards]
-			const cardIndex = newSelectedCards.indexOf(card)
-			
-			if (cardIndex >= 0) {
-				// Deselect the card
-				newSelectedCards.splice(cardIndex, 1)
-			} else if (newSelectedCards.length < 3) {
-				// Select the card if we haven't selected 3 yet
-				newSelectedCards.push(card)
-			}
-			
-			setSelectedCards(newSelectedCards)
-			
-			// If we have exactly 3 cards selected, submit them
-			if (newSelectedCards.length === 3) {
-				await swapCards(newSelectedCards)
-			}
-		},
-		[data?.swapPhase, localPlayer, selectedCards, swapCards]
-	)
-	
 	const swapCards = useCallback(
 		async (cards: Card[]) => {
 			if (!data?.swapPhase || !playerID) return
-			
+
 			// Check if the player has already submitted cards
 			const localPlayerHasSubmitted = localPlayer?.cardsToSwap && localPlayer.cardsToSwap.length === 3
 			if (localPlayerHasSubmitted) {
 				// Player has already submitted cards, don't submit again
 				return
 			}
-			
+
 			const { error } = await request<SwapCardsResponse, Query, SwapCardsBody>({
 				path: 'swap-cards',
 				query: query,
 				body: { playerID, cards },
 			})
-			
+
 			if (error) alert(error.message)
 			else {
 				// Update local state to show selected cards
@@ -186,6 +156,36 @@ const Game: NextPage = () => {
 			}
 		},
 		[data, playerID, query, players, refetch, localPlayer]
+	)
+
+	// Handle card selection during swap phase
+	const handleCardSelection = useCallback(
+		async (card: Card) => {
+			if (!data?.swapPhase || !localPlayer) return
+
+			// Check if the player has already submitted cards
+			const localPlayerHasSubmitted = localPlayer.cardsToSwap && localPlayer.cardsToSwap.length === 3
+			if (localPlayerHasSubmitted) return
+
+			const newSelectedCards = [...selectedCards]
+			const cardIndex = newSelectedCards.indexOf(card)
+
+			if (cardIndex >= 0) {
+				// Deselect the card
+				newSelectedCards.splice(cardIndex, 1)
+			} else if (newSelectedCards.length < 3) {
+				// Select the card if we haven't selected 3 yet
+				newSelectedCards.push(card)
+			}
+
+			setSelectedCards(newSelectedCards)
+
+			// If we have exactly 3 cards selected, submit them
+			if (newSelectedCards.length === 3) {
+				await swapCards(newSelectedCards)
+			}
+		},
+		[data?.swapPhase, localPlayer, selectedCards, swapCards]
 	)
 
 	const handleDragEnd = useCallback(
@@ -226,7 +226,7 @@ const Game: NextPage = () => {
 				}
 			}
 		},
-		[data, interactive, localPlayer, playCard, playerID, players, refetch, selectedCards, swapCards]
+		[data, interactive, localPlayer, playCard, playerID, players, refetch, handleCardSelection]
 	)
 
 	const sensors = useSensors(useSensor(MouseSensor), useSensor(TouchSensor))
@@ -256,13 +256,13 @@ const Game: NextPage = () => {
 			{scoreboard()}
 			{joinRoom()}
 			<WaitingForPlayers roomID={query?.room} players={players} active={data?.playing === false } />
-			
+
 			{data?.swapPhase && (
 				<div className="fixed top-0 left-0 w-full bg-primary text-white p-2 text-center z-50">
 					{data.swapDirection === 'left' && 'Pass 3 cards to the left'}
 					{data.swapDirection === 'right' && 'Pass 3 cards to the right'}
 					{data.swapDirection === 'across' && 'Pass 3 cards across'}
-					{localPlayer?.cardsToSwap && localPlayer.cardsToSwap.length === 3 
+					{localPlayer?.cardsToSwap && localPlayer.cardsToSwap.length === 3
 						? ' (Cards submitted - waiting for other players)'
 						: ` (${selectedCards.length}/3 selected)`
 					}
@@ -278,7 +278,7 @@ const Game: NextPage = () => {
 
 						const card = active.id.toString() as Card
 						setDraggingCard(card)
-						
+
 						// For swap phase, immediately handle card selection on drag start
 						if (data?.swapPhase) {
 							handleCardSelection(card)
