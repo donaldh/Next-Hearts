@@ -119,10 +119,40 @@ const Game: NextPage = () => {
 	const [selectedCards, setSelectedCards] = useState<Card[]>([])
 
 	const interactive = useMemo(
-		() => (localPlayer?.isPlaying && !animation) || data?.swapPhase,
+		() => (localPlayer?.isPlaying && !animation) || (data?.swapPhase && !animation),
 		[localPlayer, animation, data?.swapPhase]
 	)
 
+	// Handle card selection during swap phase
+	const handleCardSelection = useCallback(
+		async (card: Card) => {
+			if (!data?.swapPhase || !localPlayer) return
+			
+			// Check if the player has already submitted cards
+			const localPlayerHasSubmitted = localPlayer.cardsToSwap && localPlayer.cardsToSwap.length === 3
+			if (localPlayerHasSubmitted) return
+			
+			const newSelectedCards = [...selectedCards]
+			const cardIndex = newSelectedCards.indexOf(card)
+			
+			if (cardIndex >= 0) {
+				// Deselect the card
+				newSelectedCards.splice(cardIndex, 1)
+			} else if (newSelectedCards.length < 3) {
+				// Select the card if we haven't selected 3 yet
+				newSelectedCards.push(card)
+			}
+			
+			setSelectedCards(newSelectedCards)
+			
+			// If we have exactly 3 cards selected, submit them
+			if (newSelectedCards.length === 3) {
+				await swapCards(newSelectedCards)
+			}
+		},
+		[data?.swapPhase, localPlayer, selectedCards, swapCards]
+	)
+	
 	const swapCards = useCallback(
 		async (cards: Card[]) => {
 			if (!data?.swapPhase || !playerID) return
@@ -169,24 +199,7 @@ const Game: NextPage = () => {
 				const willPlayCard = over?.id.toString() === localPlayerArea
 
 				if (data?.swapPhase) {
-					// In swap phase, clicking a card selects/deselects it regardless of drop target
-					const newSelectedCards = [...selectedCards]
-					const cardIndex = newSelectedCards.indexOf(card)
-					
-					if (cardIndex >= 0) {
-						// Deselect the card
-						newSelectedCards.splice(cardIndex, 1)
-					} else if (newSelectedCards.length < 3) {
-						// Select the card if we haven't selected 3 yet
-						newSelectedCards.push(card)
-					}
-					
-					setSelectedCards(newSelectedCards)
-					
-					// If we have exactly 3 cards selected, submit them
-					if (newSelectedCards.length === 3) {
-						await swapCards(newSelectedCards)
-					}
+					await handleCardSelection(card)
 				} else if (willPlayCard && card) {
 					// Normal play card logic
 					const playedCards = (players?.map((p) => p.playedCard).length || 0) + 1
@@ -267,19 +280,8 @@ const Game: NextPage = () => {
 						setDraggingCard(card)
 						
 						// For swap phase, immediately handle card selection on drag start
-						if (data?.swapPhase && localPlayer) {
-							const newSelectedCards = [...selectedCards]
-							const cardIndex = newSelectedCards.indexOf(card)
-							
-							if (cardIndex >= 0) {
-								// Deselect the card
-								newSelectedCards.splice(cardIndex, 1)
-							} else if (newSelectedCards.length < 3) {
-								// Select the card if we haven't selected 3 yet
-								newSelectedCards.push(card)
-							}
-							
-							setSelectedCards(newSelectedCards)
+						if (data?.swapPhase) {
+							handleCardSelection(card)
 						}
 					}}
 					onDragEnd={handleDragEnd}
@@ -296,15 +298,29 @@ const Game: NextPage = () => {
 						playerToStartNextTurn={data?.playerToStartNextTurn}
 					/>
 
-					<PlayerHand
-						interactive={interactive}
-						localPlayer={localPlayer}
-						startingCard={data?.startingCard}
-						draggingCard={draggingCard}
-						isHeartsBroken={data?.isHeartsBroken}
-						swapPhase={data?.swapPhase}
-						selectedCards={selectedCards}
-					/>
+					<div onClick={(e) => {
+						// Handle direct clicks on cards during swap phase
+						if (data?.swapPhase && interactive) {
+							const target = e.target as HTMLElement;
+							const cardElement = target.closest('[data-card-id]');
+							if (cardElement) {
+								const cardId = cardElement.getAttribute('data-card-id') as Card;
+								if (cardId) {
+									handleCardSelection(cardId);
+								}
+							}
+						}
+					}}>
+						<PlayerHand
+							interactive={interactive}
+							localPlayer={localPlayer}
+							startingCard={data?.startingCard}
+							draggingCard={draggingCard}
+							isHeartsBroken={data?.isHeartsBroken}
+							swapPhase={data?.swapPhase}
+							selectedCards={selectedCards}
+						/>
+					</div>
 
 					<DragOverlay modifiers={[snapCenterToCursor]}>
 						{draggingCard ? (

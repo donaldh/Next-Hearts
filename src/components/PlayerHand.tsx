@@ -44,7 +44,7 @@ const BasePlayerHand = ({
 				localPlayer.playedCard !== c && (
 					<PlayingCard
 						isInHand
-						isPlaying={(localPlayer.isPlaying || swapPhase) && interactive}
+						isPlaying={interactive}
 						isDisabled={
 							!swapPhase && 
 							!isValidMove(c, localPlayer.hand, startingCard, isHeartsBroken) &&
