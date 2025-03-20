@@ -263,7 +263,7 @@ const Game: NextPage = () => {
 
 			{data?.swapPhase && (
 				<div className="fixed top-0 left-0 w-full bg-primary text-white p-2 text-center z-50 flex justify-between items-center">
-					<div className="w-1/3"></div>
+					<div className="w-1/3"/>
 					<div className="w-1/3">
 						{data.swapDirection === 'left' && 'Pass 3 cards to the left'}
 						{data.swapDirection === 'right' && 'Pass 3 cards to the right'}
@@ -274,7 +274,7 @@ const Game: NextPage = () => {
 						}
 					</div>
 					<div className="w-1/3 flex justify-end pr-2">
-						{confirmingSwap && !localPlayer?.cardsToSwap && (
+						{confirmingSwap && (
 							<button 
 								className="bg-white text-primary px-4 py-1 rounded-md"
 								onClick={() => swapCards(selectedCards)}
