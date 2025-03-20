@@ -22,6 +22,8 @@ type Props = {
 	startingCard?: Card
 	isHeartsBroken?: boolean
 	draggingCard?: Card
+	swapPhase?: boolean
+	selectedCards?: Card[]
 }
 
 const BasePlayerHand = ({
@@ -30,6 +32,8 @@ const BasePlayerHand = ({
 	startingCard,
 	isHeartsBroken,
 	draggingCard,
+	swapPhase,
+	selectedCards = [],
 }: Props) => {
 	const desktop = useBreakpoint('desktop')
 
@@ -42,18 +46,20 @@ const BasePlayerHand = ({
 						isInHand
 						isPlaying={localPlayer.isPlaying && interactive}
 						isDisabled={
+							!swapPhase && 
 							!isValidMove(c, localPlayer.hand, startingCard, isHeartsBroken) &&
 							!localPlayer?.playedCard &&
 							localPlayer.isPlaying
 						}
 						isDragging={c === draggingCard}
+						isHovering={selectedCards.includes(c)}
 						key={c}
 						id={c}
 					/>
 				)
 			)
 		},
-		[localPlayer, draggingCard, interactive, isHeartsBroken, startingCard]
+		[localPlayer, draggingCard, interactive, isHeartsBroken, startingCard, swapPhase, selectedCards]
 	)
 
 	const handOffsetDesktop = useMemo(

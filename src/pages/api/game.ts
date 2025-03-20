@@ -26,6 +26,8 @@ export type Response =
 			playerToStartNextTurn?: string
 			gameOver?: boolean
 			playing?: boolean
+			swapPhase?: boolean
+			swapDirection?: 'left' | 'right' | 'across'
 	  }
 	| undefined
 
@@ -61,6 +63,7 @@ export default function handler(
 						// Don't send player ID or their cards to other players
 						id: '',
 						hand: [],
+						cardsToSwap: [],
 					}
 		),
 		startingCard: room?.startingCard,
@@ -68,6 +71,8 @@ export default function handler(
 		playerToStartNextTurn: room?.playerToStartNextTurn?.publicID,
 		gameOver: room?.gameOver,
 		playing: room?.active,
+		swapPhase: room?.swapPhase,
+		swapDirection: room?.swapDirection,
 	}
 
 	res.status(200).json(output)

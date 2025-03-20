@@ -12,6 +12,7 @@ export type Player = {
 	playedCard?: Card
 	hand: Card[]
 	graveyard: Card[]
+	cardsToSwap?: Card[]
 	// Client only
 	isLocal?: boolean
 }

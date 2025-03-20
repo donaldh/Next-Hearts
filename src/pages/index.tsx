@@ -29,11 +29,12 @@ import { useSocketChannel } from 'core/client/socket-io'
 import { Card } from 'models/card'
 import { Event, PlayCardClient, PlayCardServer, applyPlayedCard } from 'models/game'
 import { getPlayerID, getPlayerWithHighestCard } from 'models/player'
+import { Body as SwapCardsBody, Response as SwapCardsResponse } from './api/swap-cards'
 import { playSound } from 'utils/client'
 
 export const localPlayerArea = 'player_1_area'
 
-export type Animation = 'get-cards'
+export type Animation = 'get-cards' | 'swap-cards'
 
 const gameEvent = ({
 	event,
@@ -66,6 +67,13 @@ const gameEvent = ({
 			return
 		case 'round-start':
 			playSound('got_cards')
+			return
+		case 'swap-start':
+			setAnimation(undefined)
+			playSound('got_cards')
+			return
+		case 'swap-complete':
+			playSound('turn_end')
 			return
 	}
 }
@@ -108,10 +116,39 @@ const Game: NextPage = () => {
 	const [animation, setAnimation] = useState<Animation>()
 	const [dragHoverArea, setDragHoverArea] = useState<string>()
 	const [draggingCard, setDraggingCard] = useState<Card>()
+	const [selectedCards, setSelectedCards] = useState<Card[]>([])
 
 	const interactive = useMemo(
-		() => localPlayer?.isPlaying && !animation,
-		[localPlayer, animation]
+		() => (localPlayer?.isPlaying && !animation) || data?.swapPhase,
+		[localPlayer, animation, data?.swapPhase]
+	)
+
+	const swapCards = useCallback(
+		async (cards: Card[]) => {
+			if (!data?.swapPhase || !playerID) return
+			
+			const { error } = await request<SwapCardsResponse, Query, SwapCardsBody>({
+				path: 'swap-cards',
+				query: query,
+				body: { playerID, cards },
+			})
+			
+			if (error) alert(error.message)
+			else {
+				// Update local state to show selected cards
+				await refetch(
+					{
+						...data,
+						players: players?.map((p) => {
+							if (!p.isLocal) return p
+							return { ...p, cardsToSwap: cards }
+						}),
+					},
+					false
+				)
+			}
+		},
+		[data, playerID, query, players, refetch]
 	)
 
 	const handleDragEnd = useCallback(
@@ -124,7 +161,27 @@ const Game: NextPage = () => {
 				const willPlayCard = over?.id.toString() === localPlayerArea
 				const card = active.id.toString() as Card
 
-				if (willPlayCard && card) {
+				if (data?.swapPhase) {
+					// In swap phase, clicking a card selects/deselects it
+					const newSelectedCards = [...selectedCards]
+					const cardIndex = newSelectedCards.indexOf(card)
+					
+					if (cardIndex >= 0) {
+						// Deselect the card
+						newSelectedCards.splice(cardIndex, 1)
+					} else if (newSelectedCards.length < 3) {
+						// Select the card if we haven't selected 3 yet
+						newSelectedCards.push(card)
+					}
+					
+					setSelectedCards(newSelectedCards)
+					
+					// If we have exactly 3 cards selected, submit them
+					if (newSelectedCards.length === 3) {
+						await swapCards(newSelectedCards)
+					}
+				} else if (willPlayCard && card) {
+					// Normal play card logic
 					const playedCards = (players?.map((p) => p.playedCard).length || 0) + 1
 					const playerWithHighestCard =
 						playedCards === 4 && data?.startingCard
@@ -149,7 +206,7 @@ const Game: NextPage = () => {
 				}
 			}
 		},
-		[data, interactive, localPlayer, playCard, playerID, players, refetch]
+		[data, interactive, localPlayer, playCard, playerID, players, refetch, selectedCards, swapCards]
 	)
 
 	const sensors = useSensors(useSensor(MouseSensor), useSensor(TouchSensor))
@@ -179,6 +236,15 @@ const Game: NextPage = () => {
 			{scoreboard()}
 			{joinRoom()}
 			<WaitingForPlayers roomID={query?.room} players={players} active={data?.playing === false } />
+			
+			{data?.swapPhase && (
+				<div className="fixed top-0 left-0 w-full bg-primary text-white p-2 text-center z-50">
+					{data.swapDirection === 'left' && 'Pass 3 cards to the left'}
+					{data.swapDirection === 'right' && 'Pass 3 cards to the right'}
+					{data.swapDirection === 'across' && 'Pass 3 cards across'}
+					{` (${selectedCards.length}/3 selected)`}
+				</div>
+			)}
 
 			<div className={`select-none${!interactive ? ' pointer-events-none' : ''}`}>
 				<DndContext
@@ -209,6 +275,8 @@ const Game: NextPage = () => {
 						startingCard={data?.startingCard}
 						draggingCard={draggingCard}
 						isHeartsBroken={data?.isHeartsBroken}
+						swapPhase={data?.swapPhase}
+						selectedCards={selectedCards}
 					/>
 
 					<DragOverlay modifiers={[snapCenterToCursor]}>

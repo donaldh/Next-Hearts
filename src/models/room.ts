@@ -14,6 +14,9 @@ export type Room = {
 	playerToStartNextTurn?: Player
 	createdAt: Date
 	gameOver?: boolean
+	swapPhase?: boolean
+	swapDirection?: 'left' | 'right' | 'across'
+	roundCount?: number
 }
 
 const cache = new NodeCache()
