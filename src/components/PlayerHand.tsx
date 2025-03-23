@@ -43,6 +43,7 @@ const BasePlayerHand = ({
 				localPlayer &&
 				localPlayer.playedCard !== c && (
 					<PlayingCard
+						swapPhase={swapPhase}
 						isInHand
 						isPlaying={interactive}
 						isDisabled={
@@ -52,7 +53,7 @@ const BasePlayerHand = ({
 							localPlayer.isPlaying
 						}
 						isDragging={c === draggingCard}
-						isHovering={selectedCards.includes(c)}
+						isSelected={selectedCards.includes(c)}
 						key={c}
 						id={c}
 					/>

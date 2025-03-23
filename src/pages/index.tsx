@@ -17,6 +17,7 @@ import { request, useApi, useQueryParams } from 'core/client/api'
 import type { NextPage } from 'next'
 import { Body as GameBody, Response as GameResponse, Query, QuerySchema } from 'pages/api/game'
 import { Dispatch, SetStateAction, useCallback, useEffect, useMemo, useState } from 'react'
+import { Button } from '@heroui/react'
 
 import { Body as PlayCardBody, Response as PlayCardResponse } from './api/play-card'
 
@@ -123,6 +124,10 @@ const Game: NextPage = () => {
 		() => (localPlayer?.isPlaying && !animation) || (data?.swapPhase && !animation),
 		[localPlayer, animation, data?.swapPhase]
 	)
+	const swapPhase = useMemo(
+		() => data?.swapPhase,
+		[data?.swapPhase]
+	)
 
 	const swapCards = useCallback(
 		async (cards: Card[]) => {
@@ -165,17 +170,17 @@ const Game: NextPage = () => {
 	const handleCardSelection = useCallback(
 		async (card: Card) => {
 			if (!data?.swapPhase || !localPlayer) return
-			
+
 			// Check if the player has already submitted cards
 			const localPlayerHasSubmitted = localPlayer.cardsToSwap && localPlayer.cardsToSwap.length === 3
 			if (localPlayerHasSubmitted) return
-			
+
 			// Verify the card is in the player's hand
 			if (!localPlayer.hand.includes(card)) return
-			
+
 			const newSelectedCards = [...selectedCards]
 			const cardIndex = newSelectedCards.indexOf(card)
-			
+
 			if (cardIndex >= 0) {
 				// Deselect the card
 				newSelectedCards.splice(cardIndex, 1)
@@ -186,7 +191,7 @@ const Game: NextPage = () => {
 				// Enable confirmation button when exactly 3 cards are selected
 				setConfirmingSwap(newSelectedCards.length === 3)
 			}
-			
+
 			setSelectedCards(newSelectedCards)
 		},
 		[data?.swapPhase, localPlayer, selectedCards]
@@ -263,25 +268,21 @@ const Game: NextPage = () => {
 
 			{data?.swapPhase && (
 				<div className="fixed top-0 left-0 w-full bg-primary text-white p-2 text-center z-50 flex justify-between items-center">
-					<div className="w-1/3"/>
-					<div className="w-1/3">
-						{data.swapDirection === 'left' && 'Pass 3 cards to the left'}
-						{data.swapDirection === 'right' && 'Pass 3 cards to the right'}
-						{data.swapDirection === 'across' && 'Pass 3 cards across'}
+					<div className="w-full text-center">
+						Pass 3 cards {data.swapMessage}
 						{localPlayer?.cardsToSwap && localPlayer.cardsToSwap.length === 3
 							? ' (Cards submitted - waiting for other players)'
 							: ` (${selectedCards.length}/3 selected)`
 						}
 					</div>
-					<div className="w-1/3 flex justify-end pr-2">
-						{confirmingSwap && (
-							<button 
-								className="bg-white text-primary px-4 py-1 rounded-md"
-								onClick={() => swapCards(selectedCards)}
-							>
-								Confirm
-							</button>
-						)}
+					<div className="flex justify-end pr-2">
+						<Button
+						  isDisabled={!confirmingSwap}
+						  className="bg-white text-primary px-4 py-1 rounded-md"
+						  onPress={() => swapCards(selectedCards)}
+						>
+							Confirm
+						</Button>
 					</div>
 				</div>
 			)}
@@ -292,19 +293,19 @@ const Game: NextPage = () => {
 					sensors={sensors}
 					onDragStart={({ active }: DragStartEvent) => {
 						if (!interactive) return
+						if (swapPhase) return
 
 						const card = active.id.toString() as Card
 						setDraggingCard(card)
 
 						// For swap phase, immediately handle card selection on drag start
-						if (data?.swapPhase) {
+						if (swapPhase) {
 							handleCardSelection(card)
 						}
 					}}
 					onDragEnd={handleDragEnd}
 					onDragOver={({ over }: DragOverEvent) => {
 						if (!interactive) return
-
 						setDragHoverArea(over?.id.toString())
 					}}
 				>
@@ -334,7 +335,7 @@ const Game: NextPage = () => {
 							startingCard={data?.startingCard}
 							draggingCard={draggingCard}
 							isHeartsBroken={data?.isHeartsBroken}
-							swapPhase={data?.swapPhase}
+							swapPhase={swapPhase}
 							selectedCards={selectedCards}
 						/>
 					</div>

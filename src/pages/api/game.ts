@@ -27,7 +27,7 @@ export type Response =
 			gameOver?: boolean
 			playing?: boolean
 			swapPhase?: boolean
-			swapDirection?: 'left' | 'right' | 'across'
+			swapMessage?: string
 	  }
 	| undefined
 
@@ -54,10 +54,19 @@ export default function handler(
 	})
 	joinSocketRoom(req, room.uniqueLink)
 
+	const allSwapMessages = [
+		[], [], [],
+		[ undefined, 'to the left', 'to the right' ],
+		[ undefined, 'to the left', 'across', 'to the right' ],
+		[ undefined, 'to the left', 'to the second to the left', 'to the second to the right', 'to the right' ]
+	]
+	const gameSwapMessages = allSwapMessages[room?.players.length]
+	const swapMessage = gameSwapMessages ? gameSwapMessages[room?.swapTarget || 0] : undefined
+
 	let output: Response = {
 		players: room?.players.map((p) =>
 			p.id === body.playerID
-				? { ...p, isLocal: true }
+			? { ...p, isLocal: true }
 				: {
 						...p,
 						// Don't send player ID or their cards to other players
@@ -72,7 +81,7 @@ export default function handler(
 		gameOver: room?.gameOver,
 		playing: room?.active,
 		swapPhase: room?.swapPhase,
-		swapDirection: room?.swapDirection,
+		swapMessage: swapMessage,
 	}
 
 	res.status(200).json(output)

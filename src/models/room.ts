@@ -15,7 +15,7 @@ export type Room = {
 	createdAt: Date
 	gameOver?: boolean
 	swapPhase?: boolean
-	swapDirection?: 'left' | 'right' | 'across'
+	swapTarget?: number
 	roundCount?: number
 }
 

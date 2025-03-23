@@ -20,6 +20,7 @@ const cardImageRatio = 78 / 113
 
 type Props = {
 	id?: Card | 'back' | 'transparent'
+	swapPhase?: boolean
 	isInHand?: boolean
 	isOverlay?: boolean
 	isDragging?: boolean
@@ -27,10 +28,12 @@ type Props = {
 	isHovering?: boolean
 	isPlayed?: boolean
 	isPlaying?: boolean
+	isSelected?: boolean
 }
 
 const BasePlayingCard = ({
 	id,
+	swapPhase,
 	isInHand,
 	isHovering,
 	isDisabled,
@@ -38,11 +41,11 @@ const BasePlayingCard = ({
 	isDragging,
 	isPlayed,
 	isPlaying,
+	isSelected,
 }: Props) => {
 	const { attributes, listeners, setNodeRef } = useDraggable({
 		id: id || 'none',
 	})
-
 	const desktop = useBreakpoint('desktop')
 	const size = useMemo(
 		() =>
@@ -75,6 +78,9 @@ const BasePlayingCard = ({
 				width: size * handCardVisibleRatio + 'dvh',
 				minWidth: size * handCardVisibleRatio + 'dvh',
 			}),
+			...(isSelected && {
+				transform: 'translateY(-3dvh)'
+			}),
 			...(!id && {
 				opacity: isPlaying ? 0.5 : 0.25,
 				border: `2px solid ${
@@ -84,7 +90,7 @@ const BasePlayingCard = ({
 				borderRadius: 6,
 			}),
 		}),
-		[isInHand, id, isPlaying, size]
+		[isInHand, id, isPlaying, size, isSelected]
 	)
 
 	const imageStyle = useMemo((): React.CSSProperties => {
@@ -104,7 +110,7 @@ const BasePlayingCard = ({
 
 	return (
 		<Client>
-			<div className={isInHand ? styles.Container : undefined} style={containerStyle} data-card-id={id}>
+			<div className={(isInHand && !swapPhase) ? styles.Container : undefined} style={containerStyle} data-card-id={id}>
 				<button
 					disabled={isDisabled}
 					ref={isOverlay || isDisabled ? undefined : setNodeRef}
@@ -113,7 +119,7 @@ const BasePlayingCard = ({
 					{...listeners}
 					{...attributes}
 				>
-					{(!isDragging || isDisabled) && (
+					{(swapPhase || !isDragging || isDisabled) && (
 						<Image
 							width={size}
 							height={size / cardImageRatio}
