@@ -17,13 +17,13 @@ export type Player = {
 	isLocal?: boolean
 }
 
-export const getNextPlayer = (players: readonly Player[], player?: Player) => {
+export const getPreviousPlayer = (players: readonly Player[], player?: Player) => {
 	let lastPlayer = players.length - 1
 	const lastSeatPlayer = players.find((p) => p.seat === lastPlayer)
 	const seat = player?.seat || 0
 	return seat - 1 < 0 ? lastSeatPlayer : players.find((p) => p.seat === seat - 1)
 }
-export const getPreviousPlayer = (players: Player[], player?: Player) => {
+export const getNextPlayer = (players: readonly Player[], player?: Player) => {
 	let lastPlayer = players.length - 1
 	const firstSeatPlayer = players.find((p) => p.seat === 0)
 	const seat = player?.seat || 0
