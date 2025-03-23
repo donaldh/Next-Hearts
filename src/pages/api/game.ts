@@ -58,7 +58,7 @@ export default function handler(
 		[], [], [],
 		[ undefined, 'to the left', 'to the right' ],
 		[ undefined, 'to the left', 'across', 'to the right' ],
-		[ undefined, 'to the left', 'to the second to the left', 'to the second to the right', 'to the right' ]
+		[ undefined, 'to the left', 'to the second left', 'to the second right', 'to the right' ]
 	]
 	const gameSwapMessages = allSwapMessages[room?.players.length]
 	const swapMessage = gameSwapMessages ? gameSwapMessages[room?.swapTarget || 0] : undefined
