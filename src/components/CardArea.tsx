@@ -157,7 +157,7 @@ const BaseCardArea = ({ animationData, playerData, id }: Props) => {
 				<div style={staticStyle}>
 					<div className={styles.NameContainer}>
 						<p className='text-md truncate font-medium' style={nameStyle}>
-							{player?.name} : {player?.score} Total: {player?.points}
+							{player?.name} {player?.score} [{player?.points}]
 						</p>
 					</div>
 					<div ref={setNodeRef}>
