@@ -72,7 +72,6 @@ const BasePlayingCard = ({
 		(): React.CSSProperties => ({
 			width: 'fit-content',
 			display: 'relative',
-			transition: 'transform 100ms ease, border-color 100ms ease',
 			zIndex: 1,
 			...(isInHand && {
 				width: size * handCardVisibleRatio + 'dvh',
@@ -89,6 +88,7 @@ const BasePlayingCard = ({
 				background: isPlaying ? `rgba(${highlightColor}, .25)` : 'rgba(0, 0, 0, .1)',
 				borderRadius: 6,
 			}),
+			transition: 'transform 100ms ease, border-color 100ms ease',
 		}),
 		[isInHand, id, isPlaying, size, isSelected]
 	)
@@ -111,13 +111,12 @@ const BasePlayingCard = ({
 	return (
 		<Client>
 			<div className={(isInHand && !swapPhase) ? styles.Container : undefined} style={containerStyle} data-card-id={id}>
+			{swapPhase && (
 				<button
 					disabled={isDisabled}
 					ref={isOverlay || isDisabled ? undefined : setNodeRef}
 					style={buttonStyle}
 					data-card-id={id}
-					{...listeners}
-					{...attributes}
 				>
 					{(swapPhase || !isDragging || isDisabled) && (
 						<Image
@@ -129,7 +128,28 @@ const BasePlayingCard = ({
 							src={id ? `/assets/cards/${id}.svg` : transparentCard}
 						/>
 					)}
+				</button>)}
+			{!swapPhase && (
+				<button
+					disabled={isDisabled}
+					ref={isOverlay || isDisabled ? undefined : setNodeRef}
+					style={buttonStyle}
+					data-card-id={id}
+					{...listeners}
+					{...attributes}
+				>
+				{(!isDragging || isDisabled) && (
+					<Image
+						width={size}
+						height={size / cardImageRatio}
+						style={imageStyle}
+						className={styles.Image}
+						alt='Card'
+						src={id ? `/assets/cards/${id}.svg` : transparentCard}
+					/>
+				)}
 				</button>
+			)}
 			</div>
 		</Client>
 	)
