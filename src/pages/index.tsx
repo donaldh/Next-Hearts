@@ -40,10 +40,12 @@ export type Animation = 'get-cards' | 'swap-cards'
 const gameEvent = ({
 	event,
 	setAnimation,
+	setSelectedCards,
 	showScoreboard,
 }: {
 	event: Event
 	setAnimation: Dispatch<SetStateAction<Animation | undefined>>
+	setSelectedCards: Dispatch<SetStateAction<Card[]>>
 	showScoreboard: () => void
 }) => {
 	switch (event) {
@@ -75,6 +77,7 @@ const gameEvent = ({
 			return
 		case 'swap-complete':
 			playSound('turn_end')
+			setSelectedCards([])
 			return
 	}
 }
@@ -111,7 +114,7 @@ const Game: NextPage = () => {
 		connect: () => refetch(),
 		kitty: (msg) => console.log('hello from server: ' + JSON.stringify(msg)),
 		'update-game': () => refetch(),
-		'game-event': (event) => gameEvent({ event, setAnimation, showScoreboard }),
+		'game-event': (event) => gameEvent({ event, setAnimation, setSelectedCards, showScoreboard }),
 	})
 
 	const [animation, setAnimation] = useState<Animation>()
