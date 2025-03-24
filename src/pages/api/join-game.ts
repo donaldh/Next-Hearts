@@ -71,13 +71,13 @@ export default function handler(
 		room = getRoom(roomID)
 		if (!room) {
 			response = { error: 'Room not found' }
-			return res.status(404).send(response)
+			return res.status(200).send(response)
 		}
 
 		const success = addPlayer(req, room, playerID, name)
 		if (!success) {
 			response = { error: 'Room is full' }
-			return res.status(400).send(response)
+			return res.status(200).send(response)
 		}
 	} else {
 		room = addRoom()
