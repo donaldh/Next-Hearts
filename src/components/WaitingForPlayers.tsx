@@ -2,7 +2,7 @@ import { useAutoAnimate } from '@formkit/auto-animate/react'
 import { CheckCircleIcon } from '@heroicons/react/24/outline'
 import { Button, Card, Divider, Modal, ModalContent } from '@heroui/react'
 import { Player } from 'models/player'
-import { modalProps } from 'utils/consts'
+import { modalProps, minPlayers } from 'utils/consts'
 import { ModalWrapper } from './ModalContent'
 import { request } from 'core/client/api'
 import { Query } from 'pages/api/new-game'
@@ -56,7 +56,7 @@ export const WaitingForPlayers = ({ players, roomID, active }: {
 								})
 						}}
 						color='primary'
-						isDisabled={players.length < 3}
+						isDisabled={players.length < minPlayers}
 					>
 						<div className='flex gap-2 items-center'>
 							Start Game
