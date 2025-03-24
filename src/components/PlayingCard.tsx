@@ -15,6 +15,7 @@ import transparentCard from '../../public/assets/cards/transparent.svg'
 import { useBreakpoint } from 'core/client/components/MediaQuery'
 import { Client } from 'react-hydration-provider'
 import styles from './PlayingCard.module.css'
+import { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities'
 
 const cardImageRatio = 78 / 113
 
@@ -108,15 +109,24 @@ const BasePlayingCard = ({
 		}
 	}, [isHovering, id, isPlaying, isDisabled, size])
 
+	const buttonListeners = useMemo((): SyntheticListenerMap | undefined => (
+		swapPhase ? {} : listeners), [swapPhase]
+	)
+
 	return (
 		<Client>
-			<div className={(isInHand && !swapPhase) ? styles.Container : undefined} style={containerStyle} data-card-id={id}>
-			{swapPhase && (
+			<div
+				className={(isInHand && !swapPhase) ? styles.Container : undefined}
+				style={containerStyle}
+				data-card-id={id}
+			>
 				<button
 					disabled={isDisabled}
 					ref={isOverlay || isDisabled ? undefined : setNodeRef}
 					style={buttonStyle}
 					data-card-id={id}
+					{...buttonListeners}
+					{...attributes}
 				>
 					{(swapPhase || !isDragging || isDisabled) && (
 						<Image
@@ -128,28 +138,7 @@ const BasePlayingCard = ({
 							src={id ? `/assets/cards/${id}.svg` : transparentCard}
 						/>
 					)}
-				</button>)}
-			{!swapPhase && (
-				<button
-					disabled={isDisabled}
-					ref={isOverlay || isDisabled ? undefined : setNodeRef}
-					style={buttonStyle}
-					data-card-id={id}
-					{...listeners}
-					{...attributes}
-				>
-				{(!isDragging || isDisabled) && (
-					<Image
-						width={size}
-						height={size / cardImageRatio}
-						style={imageStyle}
-						className={styles.Image}
-						alt='Card'
-						src={id ? `/assets/cards/${id}.svg` : transparentCard}
-					/>
-				)}
 				</button>
-			)}
 			</div>
 		</Client>
 	)
