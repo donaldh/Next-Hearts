@@ -4,6 +4,7 @@ import { socketBroadcast } from 'core/server/socket-io'
 import { Card, getShuffledCards, sortCards } from 'models/card'
 import { Player, getNextPlayer, getPlayerWithHighestCard } from 'models/player'
 import { Room, getRoom, saveRoom, getPlayer } from 'models/room'
+import { endGameScore, strictPlay } from 'utils/consts'
 
 export type Event =
 	| 'card-played'
@@ -242,7 +243,12 @@ export const isValidMove = (
 	const hasHearts = hand.find((c) => c.includes('_hearts'))
 
 	if (!startingCard) {
-		return cardType !== 'hearts' || (!hasClubs && !hasDiamonds && !hasSpades) || isHeartsBroken
+		if (strictPlay) {
+			return cardType !== 'hearts' || (!hasClubs && !hasDiamonds && !hasSpades) || isHeartsBroken
+		}
+		else {
+			return true
+		}
 	}
 
 	const startingCardType = startingCard.split('_')[2] as CardType
@@ -250,7 +256,8 @@ export const isValidMove = (
 	if (cardType === startingCardType) return true
 
 	// Can't play penalty cards on first turn
-	if (startingCard === '2_of_clubs' && (cardType === 'hearts' || card === 'queen_of_spades')) {
+	if (strictPlay && startingCard === '2_of_clubs' &&
+		(cardType === 'hearts' || card === 'queen_of_spades')) {
 		return false
 	}
 
@@ -353,7 +360,7 @@ export const nextTurn = (roomId: string) => {
 		console.log('Round ended: ' + JSON.stringify(room.players, null, 2))
 		socketBroadcast<PlayCardClient>('game-event', 'round-over', room.uniqueLink)
 
-		if (players.find((p) => p.points <= -30)) {
+		if (players.find((p) => p.points <= endGameScore)) {
 			room.gameOver = true
 			console.log('Game ended: ' + JSON.stringify(room.players, null, 2))
 			socketBroadcast<PlayCardClient>('game-event', 'game-over', room.uniqueLink)
