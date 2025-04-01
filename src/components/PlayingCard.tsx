@@ -110,7 +110,7 @@ const BasePlayingCard = ({
 	}, [isHovering, id, isPlaying, isDisabled, size])
 
 	const buttonListeners = useMemo((): SyntheticListenerMap | undefined => (
-		swapPhase ? {} : listeners), [swapPhase]
+		swapPhase ? {} : listeners), [swapPhase, listeners]
 	)
 
 	return (
