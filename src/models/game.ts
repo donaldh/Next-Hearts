@@ -124,7 +124,7 @@ const startRound = (roomId: string) => {
 
 	let startingPlayer = room.startingPlayer
 					   ? getNextPlayer(players, room.startingPlayer)
-					   : players[0]
+					   : players[Math.floor(Math.random() * players.length)]
 	if (startingPlayer) startingPlayer.isPlaying = true
 	room.startingPlayer = startingPlayer
 
