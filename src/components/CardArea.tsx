@@ -151,18 +151,28 @@ const BaseCardArea = ({ animationData, playerData, id }: Props) => {
 		[player?.isPlaying, gotCards]
 	)
 
+	const tricks = useMemo(
+		() => (
+			player?.tricks ? '🂠 '.repeat(player?.tricks) : ''
+		),
+		[player?.tricks]
+	)
+
 	return (
 		<Client>
 			<div>
 				<div style={staticStyle}>
 					<div className={styles.NameContainer}>
 						<p className='text-md truncate font-medium' style={nameStyle}>
-							{player?.name} {player?.score} [{player?.points}]
+							{player?.name}<span className={styles.Score}>[{player?.points}]</span>
 						</p>
 					</div>
 					<div ref={setNodeRef}>
 						<PlayingCard isPlaying={player?.isPlaying} isPlayed />
 					</div>
+					<p className='text-md truncate font-medium' style={nameStyle}>
+						{tricks}
+					</p>
 				</div>
 				<div style={animatedStyle}>
 					{player?.playedCard && <PlayingCard id={player?.playedCard} isPlayed />}

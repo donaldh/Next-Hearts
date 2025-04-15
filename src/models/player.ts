@@ -5,6 +5,7 @@ export type Player = {
 	id?: string
 	publicID?: string
 	name: string
+	tricks: number
 	score: number
 	points: number
 	seat: number

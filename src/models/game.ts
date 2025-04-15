@@ -85,6 +85,7 @@ export const prepareRound = (roomId: string) => {
 		p.playedCard = undefined
 		p.isPlaying = false
 		p.graveyard = []
+		p.tricks = 0
 		p.hand = sortCards(room.deck.slice(i * n, n + i * n))
 		p.cardsToSwap = []
 
@@ -310,6 +311,7 @@ export const applyFinishedTurn = (roomId: string) => {
 	const turnCards = players.map((p) => p.playedCard) as Card[]
 
 	if (playerWithHighestCard) {
+		playerWithHighestCard.tricks += 1
 		let score = 1
 		turnCards.forEach((c) => {
 			if (c === 'queen_of_spades') score -= 13

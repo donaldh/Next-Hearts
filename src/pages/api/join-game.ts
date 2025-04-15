@@ -36,6 +36,7 @@ const addPlayer = (
 					id: playerID,
 					publicID: v1(),
 					name: name,
+					tricks: 0,
 					score: 0,
 					points: 0,
 					graveyard: [],
