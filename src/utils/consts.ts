@@ -6,6 +6,7 @@ export const maxCardsHandRowMobile = 9
 
 export const strictPlay = false
 export const endGameScore = -100
+export const roomTimeout = 60 * 6 /* minutes */
 
 export const playedCardSizeRatio = 0.85
 export const handCardVisibleRatio = 0.33

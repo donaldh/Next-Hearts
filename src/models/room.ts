@@ -2,6 +2,7 @@ import NodeCache from 'node-cache'
 import { adjectives, animals, colors, uniqueNamesGenerator } from 'unique-names-generator'
 import { Card } from './card'
 import { Player } from './player'
+import { roomTimeout } from 'utils/consts'
 
 export type Room = {
 	active: boolean
@@ -47,8 +48,7 @@ export const addRoom = (idOverride?: string) => {
 				console.log('Deleting room ' + room.uniqueLink)
 				global.cache?.del(room.uniqueLink)
 			},
-			// 1 hour
-			1000 * 60 * 60
+			1000 * 60 * roomTimeout
 		)
 		return room
 	} else return
