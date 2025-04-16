@@ -362,7 +362,7 @@ export const nextTurn = (roomId: string) => {
 		console.log('Round ended: ' + JSON.stringify(room.players, null, 2))
 		socketBroadcast<PlayCardClient>('game-event', 'round-over', room.uniqueLink)
 
-		if (players.find((p) => p.points <= endGameScore)) {
+		if (strictPlay == true && players.find((p) => p.points <= endGameScore)) {
 			room.gameOver = true
 			console.log('Game ended: ' + JSON.stringify(room.players, null, 2))
 			socketBroadcast<PlayCardClient>('game-event', 'game-over', room.uniqueLink)

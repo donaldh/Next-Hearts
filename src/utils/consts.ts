@@ -5,7 +5,7 @@ export const maxPlayers = 5
 export const maxCardsHandRowMobile = 9
 
 export const strictPlay = false
-export const endGameScore = -100
+export const endGameScore = -100 /* only during strict play */
 export const roomTimeout = 60 * 6 /* minutes */
 
 export const playedCardSizeRatio = 0.85
